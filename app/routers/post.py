@@ -27,12 +27,12 @@ def get_posts(
     stmt = (
         select(models.Post, vote_count)
         .outerjoin(models.Vote, models.Post.id == models.Vote.post_id)
-        .group_by(models.Post.id).order_by(vote_count.desc())    # groupby works here because Post.id is uniquely identifies other attributes here.
+        .group_by(models.Post.id).order_by(vote_count.desc())   
         .where(models.Post.title.icontains(search))
         .limit(limit)
         .offset(skip)
         )
-    posts = db.execute(stmt).mappings().all()  # using mappings because here we are selecting multiple columns instead of only orm object.
+    posts = db.execute(stmt).mappings().all()  # using mappings because here we are selecting both orm object and aggregated col.
 
     return posts
 
@@ -47,7 +47,7 @@ def create_posts(
     # Unpacking post so that we don't have to pass key arguments manually.
     new_post = models.Post(
         **post.model_dump(),
-        owner_id=current_user.id      # As obvious owner_id must be the id of current_user(who is currently logged in)
+        owner_id=current_user.id      
         )
     
     db.add(new_post) # adding in database
@@ -77,11 +77,11 @@ def get_post(
     stmt = (
         select(
             models.Post,
-            func.coalesce(vote_counts.c.votes, 0).label('votes')  # null handlings (whichever post don't have votes will get null).
+            func.coalesce(vote_counts.c.votes, 0).label('votes')  
         )
         .outerjoin(
             vote_counts,
-            vote_counts.c.post_id == models.Post.id    # .c is used for accessing column (directly not possible).
+            vote_counts.c.post_id == models.Post.id    
             )
         .where(models.Post.id == id)
     )
@@ -91,7 +91,7 @@ def get_post(
     # Checking whether the post exist or not.
     if not post:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,    # manually sending the routerropriate status_code
+            status_code=status.HTTP_404_NOT_FOUND,   
             detail="Post was not found!"
             )
     
