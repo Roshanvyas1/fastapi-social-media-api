@@ -1,0 +1,51 @@
+from fastapi import HTTPException, status, Depends, APIRouter
+from sqlalchemy.orm import Session
+from sqlalchemy import select, delete, update
+from app import models
+from app.database import get_db
+from app.schemas import UserCreate, UserResponse
+from app.utils import hash_password
+
+# Creating router object
+router = APIRouter(
+    prefix='/users',
+    tags=['Users']
+)
+
+@router.get("/", response_model=list[UserResponse]) 
+def get_users(db: Session = Depends(get_db)):
+
+    users = db.execute(
+        select(models.User)
+        ).scalars().all()
+    
+    return users
+
+@router.post('/', status_code=status.HTTP_201_CREATED, response_model=UserResponse)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+
+    # Converting password into hashed password for security.
+    hashed_password = hash_password(user.password)
+    user.password = hashed_password 
+
+    new_user = models.User(
+        **user.model_dump()
+        )
+    
+    # Selecting User using same email (if any).
+    existing_email = db.execute(
+        select(models.User).where(models.User.email == user.email)
+        ).scalars().first()
+    
+    # If user found using existing email then raising exception.
+    if existing_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,    # manually sending the routerropriate status_code
+            detail=f"Email already exists!"
+            )
+    
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return new_user
