@@ -11,11 +11,12 @@ from fastapi import Depends, HTTPException, status
 from typing import Any
 from app.config import settings
 
-# CREATED USING CMD (python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+# Secret key is created USING CMD (python3 -c "import secrets; print(secrets.token_urlsafe(32))")
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
 EXPIRE_ACCESS_TOKEN_MINUTES = settings.access_token_expire_minutes
 
+# Extract tokens.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/login')
 
 def create_access_token(data: dict[str,Any]):
@@ -38,6 +39,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         headers={'WWW-Authenticate': 'Bearer'}
     )
     try:
+        # Decoding for validation.
         payload = jwt.decode(
             jwt=token,
             key=SECRET_KEY,
@@ -53,9 +55,11 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     except InvalidTokenError:
         raise credential_exception
 
+    # Retrieving user details.
     user = db.execute(
         select(models.User).where(models.User.id == token_data.id)
         ).scalars().first()
+    
     if user is None:
         raise credential_exception
     
