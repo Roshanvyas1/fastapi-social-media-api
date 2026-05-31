@@ -22,12 +22,6 @@ def get_posts(
     search: str = ""
     ):
 
-    # # Fetching all posts.
-    # posts = db.execute(
-    #     # select(models.Post).where(models.Post.owner_id == current_user.id)  -> User personal post only
-    #     select(models.Post).where(models.Post.title.icontains(search)).limit(limit).offset(skip)
-    #     ).scalars().all()
-    
     # creating here so that it can be reused later.
     vote_count = func.count(models.Vote.post_id).label('votes') 
     stmt = (
@@ -43,7 +37,7 @@ def get_posts(
     return posts
 
 # Create post
-@router.post('/', status_code=status.HTTP_201_CREATED, response_model=PostResponse) # Here same path url with different request method(post).
+@router.post('/', status_code=status.HTTP_201_CREATED, response_model=PostResponse) 
 def create_posts(
     post: PostCreate, 
     db: Session = Depends(get_db), 
@@ -68,11 +62,7 @@ def get_post(
     id: int, 
     db: Session = Depends(get_db), 
     current_user: UserResponse = Depends(get_current_user)  # checks logged in or not.
-    ): # Explicitly telling id should be int(otherwise id always be str), Now if id won't be int or convertible type(auto through fastapi) then it will raise error.
-    
-    # post = db.execute(
-    #     select(models.Post).where(models.Post.id == id)
-    #     ).scalars().first()
+    ):
 
     # Creating cte.
     vote_counts = (
@@ -95,8 +85,6 @@ def get_post(
             )
         .where(models.Post.id == id)
     )
-    
-    print(stmt.compile(compile_kwargs={"literal_binds": True})) # for analysis query.
 
     post = db.execute(stmt).mappings().first()
 
@@ -110,27 +98,14 @@ def get_post(
     return post
 
 # Delete specific post.
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT) # If we are deleting something then there is no need to return anything( since here we manual status_code=204 means operation was successful nothing will be returned)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT) 
 def delete_post(
     id: int, 
     db: Session = Depends(get_db), 
     current_user: UserResponse = Depends(get_current_user)
     ):
-    # post_exist = db.get(models.Post, id)
-    # if not post_exist:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_404_NOT_FOUND,
-    #         detail='Post was not found'
-    #     )
 
-    # Direct deletion and no error will appear even if id not found(now implemented post_exist logic).
-    # post = db.execute(
-    #     delete(models.Post).where(models.Post.id == id)
-    #     )
-    
-    # db.commit()
-
-    # Using get method, work only for primary attributes and is more optimize(use sqlalchemy internal memory first for what we search).
+    # Using get method, work only for primary attributes and is more optimize(uses sqlalchemy internal memory first for what we search).
     post = db.get(models.Post, id)
 
     # If post doesn't exist.
@@ -147,7 +122,6 @@ def delete_post(
             detail="Not Authorized!"
         )
     
-    print("current_user:", current_user.id)
     db.delete(post)
     db.commit()
     
@@ -160,25 +134,13 @@ def update_post(
     current_user: UserResponse = Depends(get_current_user)
     ):
     
-    # # Direct updation
-    # db.execute(
-    #     update(models.Post).where(models.Post.id == id)
-    #     .values(
-    #         **post.model_dump(exclude_unset=True)
-    #         )
-    #     )
-
-    # db.commit()
-    # updated_post = db.get(models.Post, id)
-    # return {"Updated_post": updated_post}
-
     # ORM style
     existing_post = db.get(models.Post, id)
 
     # Checking whether the post exists or not.
     if existing_post is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,    # manually sending the routerropriate status_code
+            status_code=status.HTTP_404_NOT_FOUND,    
             detail="Post was not found!"
             )
     
@@ -189,13 +151,13 @@ def update_post(
             detail="Not Authorized!"
         )
     
-    # Converting in dict and excluding values that containing None.
+    # Converting in dict and excluding values that contains None.
     required_change_post = post.model_dump(exclude_unset=True)
 
     # Checking if there is anything to update or not.
     if not required_change_post:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,    # manually sending the routerropriate status_code
+            status_code=status.HTTP_400_BAD_REQUEST,    
             detail=f"No field provided to update!"
             )
     
