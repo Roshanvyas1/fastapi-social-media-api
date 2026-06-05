@@ -5,7 +5,7 @@ from app.schemas import TokenData
 from app.database import get_db
 from app import models
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
 from typing import Any
@@ -32,7 +32,7 @@ def create_access_token(data: dict[str,Any]):
     
     return encoded_jwt
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
     credential_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail='Could not validate Credentials',
@@ -56,9 +56,9 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise credential_exception
 
     # Retrieving user details.
-    user = db.execute(
+    user = (await db.execute(
         select(models.User).where(models.User.id == token_data.id)
-        ).scalars().first()
+        )).scalars().first()
     
     if user is None:
         raise credential_exception
