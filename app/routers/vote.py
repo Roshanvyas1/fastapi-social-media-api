@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app import models
 from app.schemas import Vote
 from app.database import get_db
@@ -12,14 +12,14 @@ router = APIRouter(
 )
 
 @router.post('/', status_code=status.HTTP_200_OK) 
-def vote(
+async def vote(
     vote: Vote,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_user)
     ):
     
     # Retrieving post.
-    existing_post = db.get(models.Post, vote.post_id)
+    existing_post = await db.get(models.Post, vote.post_id)
 
     # Checking post exist or not.
     if not existing_post:
@@ -29,7 +29,7 @@ def vote(
         )
     
     # Retrieving user existing vote.
-    existing_vote = db.get(models.Vote, (vote.post_id, current_user.id))
+    existing_vote = await db.get(models.Vote, (vote.post_id, current_user.id))
     
     # If user wants to add vote(dir=1).
     if vote.dir == 1:
@@ -48,7 +48,7 @@ def vote(
         )
 
         db.add(new_vote)
-        db.commit()
+        await db.commit()
 
         return {'message': 'Successfully voted!'}
     
@@ -61,7 +61,7 @@ def vote(
             )
         
         # Deleting vote.
-        db.delete(existing_vote)
-        db.commit()
+        await db.delete(existing_vote)
+        await db.commit()
 
         return {'message': 'Successfully unvoted!'}

@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status, Depends, APIRouter
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, update, func
 from app import models
 from app.database import get_db
@@ -14,8 +14,8 @@ router = APIRouter(
 
 # Get posts
 @router.get("/", response_model=list[PostVoteResponse]) 
-def get_posts(
-    db: Session = Depends(get_db), 
+async def get_posts(
+    db: AsyncSession = Depends(get_db), 
     current_user: UserResponse = Depends(get_current_user),
     limit: int = 10,
     skip: int = 0,
@@ -32,15 +32,18 @@ def get_posts(
         .limit(limit)
         .offset(skip)
         )
-    posts = db.execute(stmt).mappings().all()  # using mappings because here we are selecting both orm object and aggregated col.
+    
+    result = await db.execute(stmt)
+    
+    posts = result.mappings().all()  # using mappings because here we are selecting both orm object and aggregated col.
 
     return posts
 
 # Create post
 @router.post('/', status_code=status.HTTP_201_CREATED, response_model=PostResponse) 
-def create_posts(
+async def create_posts(
     post: PostCreate, 
-    db: Session = Depends(get_db), 
+    db: AsyncSession = Depends(get_db), 
     current_user: UserResponse = Depends(get_current_user)
     ): 
 
@@ -50,18 +53,18 @@ def create_posts(
         owner_id=current_user.id      
         )
     
-    db.add(new_post) # adding in database
-    db.commit() # commit changes
-    db.refresh(new_post) # re-fetching new_post after commit 
+    db.add(new_post) 
+    await db.commit() 
+    await db.refresh(new_post)
     
-    return {"Post": new_post}
+    return new_post
 
 # Get specific post.
-@router.get("/{id}", response_model=PostVoteResponse) # id represents path parameter.
-def get_post(
+@router.get("/{id}", response_model=PostVoteResponse) 
+async def get_post(
     id: int, 
-    db: Session = Depends(get_db), 
-    current_user: UserResponse = Depends(get_current_user)  # checks logged in or not.
+    db: AsyncSession = Depends(get_db), 
+    current_user: UserResponse = Depends(get_current_user) 
     ):
 
     # Creating cte.
@@ -86,7 +89,9 @@ def get_post(
         .where(models.Post.id == id)
     )
 
-    post = db.execute(stmt).mappings().first()
+    result = await db.execute(stmt)
+    
+    post = result.mappings().first()
 
     # Checking whether the post exist or not.
     if not post:
@@ -99,14 +104,14 @@ def get_post(
 
 # Delete specific post.
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT) 
-def delete_post(
+async def delete_post(
     id: int, 
-    db: Session = Depends(get_db), 
+    db: AsyncSession = Depends(get_db), 
     current_user: UserResponse = Depends(get_current_user)
     ):
 
     # Using get method, work only for primary attributes and is more optimize(uses sqlalchemy internal memory first for what we search).
-    post = db.get(models.Post, id)
+    post = await db.get(models.Post, id)
 
     # If post doesn't exist.
     if post is None :
@@ -122,20 +127,20 @@ def delete_post(
             detail="Not Authorized!"
         )
     
-    db.delete(post)
-    db.commit()
+    await db.delete(post)
+    await db.commit()
     
 # Update post.
 @router.patch("/{id}", response_model=PostResponse)
-def update_post(
+async def update_post(
     id: int, 
     post: PostUpdate, 
-    db: Session = Depends(get_db), 
+    db: AsyncSession = Depends(get_db), 
     current_user: UserResponse = Depends(get_current_user)
     ):
     
     # ORM style
-    existing_post = db.get(models.Post, id)
+    existing_post = await db.get(models.Post, id)
 
     # Checking whether the post exists or not.
     if existing_post is None:
@@ -165,7 +170,7 @@ def update_post(
     for key, value in required_change_post.items():
         setattr(existing_post, key, value)
 
-    db.commit()
-    db.refresh(existing_post) # re-fetching existing_post after commit
+    await db.commit()
+    await db.refresh(existing_post) # re-fetching existing_post after commit
 
     return existing_post

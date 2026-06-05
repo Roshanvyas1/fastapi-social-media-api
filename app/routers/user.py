@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status, Depends, APIRouter
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, update
 from app import models
 from app.database import get_db
@@ -13,16 +13,18 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=list[UserResponse]) 
-def get_users(db: Session = Depends(get_db)):
+async def get_users(db: AsyncSession = Depends(get_db)):
 
-    users = db.execute(
+    result = await db.execute(
         select(models.User)
-        ).scalars().all()
+        )
+    
+    users = result.scalars().all()
     
     return users
 
 @router.post('/', status_code=status.HTTP_201_CREATED, response_model=UserResponse)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
+async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
 
     # Converting password into hashed password for security.
     hashed_password = hash_password(user.password)
@@ -33,9 +35,9 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         )
     
     # Selecting User using same email (if any).
-    existing_email = db.execute(
+    existing_email = (await db.execute(
         select(models.User).where(models.User.email == user.email)
-        ).scalars().first()
+        )).scalars().first()
     
     # If user found using existing email then raising exception.
     if existing_email:
@@ -45,7 +47,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
             )
     
     db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    await db.commit()
+    await db.refresh(new_user)
 
     return new_user
