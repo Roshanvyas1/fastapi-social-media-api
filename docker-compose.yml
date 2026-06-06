@@ -8,6 +8,12 @@ services:
       - pgdata:/var/lib/postgresql
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fastapi"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     
   fastapi:
     build: .
@@ -19,7 +25,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes: 
   pgdata:
