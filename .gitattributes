@@ -1,0 +1,5 @@
+# Fixing eol(end of line) format for given file.
+
+*.sh text eol=lf
+
+Dockerfile text eol=lf
