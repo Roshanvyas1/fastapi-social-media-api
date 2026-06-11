@@ -57,11 +57,11 @@ jobs:
           getent hosts postgres || true
 
           python -c "
-        import socket
-        try:
+      import socket
+      try:
           print(socket.gethostbyname('postgres'))
-        except Exception as e:
+      except Exception as e:
           print(e)
-        "
+      "
       - name: Run tests
         run: python -m pytest -v -x --tb=short
