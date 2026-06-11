@@ -57,7 +57,7 @@ async def vote(
         if not existing_vote:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="You haven't voted yet!"
+                detail="Your vote doesn't exist!"
             )
         
         # Deleting vote.
