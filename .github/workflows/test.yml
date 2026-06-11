@@ -3,7 +3,7 @@ name: Run tests
 on: 
   push:
     branches: [main]                 # Test only starts when push only happens on main branch.
-  pull-request:
+  pull_request:
 
 jobs: 
   test:
