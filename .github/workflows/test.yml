@@ -24,7 +24,7 @@ jobs:
           --health-retries 5
     
     env:
-      DATABASE_HOSTNAME: postgres
+      DATABASE_HOSTNAME: localhost
       DATABASE_PORT: 5432
       DATABASE_USERNAME: postgres
       DATABASE_PASSWORD: postgres
@@ -64,6 +64,6 @@ jobs:
           except Exception as e:
               print(e)
           EOF
-          
+
       - name: Run tests
         run: python -m pytest -v -x --tb=short
