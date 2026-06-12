@@ -14,10 +14,7 @@ if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
-TEST_DATABASE_URL = (
-    f"postgresql+psycopg://{settings.database_username}:{settings.database_password}"
-    f"@{settings.database_hostname}:{settings.database_port}/{settings.database_name}_test"
-)
+TEST_DATABASE_URL = settings.test_database_url
 
 test_engine = create_async_engine(url=TEST_DATABASE_URL)
 
