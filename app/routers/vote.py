@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app import models
 from app.schemas import Vote

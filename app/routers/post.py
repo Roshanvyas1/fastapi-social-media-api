@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status, Depends, APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete, update, func
+from sqlalchemy import select, func
 from app import models
 from app.database import get_db
 from app.schemas import PostCreate, PostUpdate, PostResponse, PostVoteResponse, UserResponse

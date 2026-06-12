@@ -20,7 +20,7 @@ async def test_create_post_return_201(authorized_client, test_user):
     data = response.json()
     assert data['title'] == "Dummy Title"
     assert data['content'] == "Dummy Content"
-    assert data['published'] == False
+    assert not data['published']
     assert data['owner_id'] == test_user['id']
     assert data['owner']['email'] == test_user['email']
 
@@ -142,7 +142,7 @@ async def test_update_post_using_post_id_return_200(authorized_client, test_post
     data = response.json()
     assert data["title"] == "Update Dummy Title"
     assert data['content'] == test_post.content
-    assert data['published'] == False
+    assert not data['published']
     assert data['owner_id'] == test_post.owner_id
 
 async def test_update_post_using_post_id_does_not_exist_return_404(authorized_client):
