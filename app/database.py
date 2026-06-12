@@ -7,13 +7,13 @@ SQLALCHEMY_DATABASE_URL = settings.database_url
 engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
 
 AsyncSessionLocal = async_sessionmaker(
-                        bind=engine,
-                        expire_on_commit=False, 
-                        autoflush=False
-                    )
+    bind=engine, expire_on_commit=False, autoflush=False
+)
+
 
 class Base(DeclarativeBase):
     pass
+
 
 # Creating Session Dependency
 async def get_db():

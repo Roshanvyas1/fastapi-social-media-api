@@ -72,6 +72,7 @@ jobs:                                      # all job runs parallely and independ
       DATABASE_PORT: 5432
       DATABASE_USERNAME: postgres
       DATABASE_PASSWORD: postgres
+      DATABASE_NAME: fastapi
       TEST_DATABASE_NAME: fastapi_test
       SECRET_KEY: ${{secrets.SECRET_KEY}}
       ALGORITHM: HS256
