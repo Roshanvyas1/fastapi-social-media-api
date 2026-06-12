@@ -43,7 +43,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     if existing_email:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,    
-            detail=f"Email already exists!"
+            detail="Email already exists!"
             )
     
     db.add(new_user)

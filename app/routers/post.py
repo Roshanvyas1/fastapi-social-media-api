@@ -117,7 +117,7 @@ async def delete_post(
     if post is None :
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Post was not found!"
+            detail="Post was not found!"
             )
     
     # Checking if the selected post belongs to current_user or not.
@@ -163,7 +163,7 @@ async def update_post(
     if not required_change_post:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,    
-            detail=f"No field provided to update!"
+            detail="No field provided to update!"
             )
     
     # updating rows through instance of Post using setattr method works like(instance.key=value)
