@@ -1,7 +1,7 @@
 .env
-learning
-__pycache__
+app/learning/
+__pycache__/
 .gitignore
 .git/
 .env.example
-venv
+venv/
