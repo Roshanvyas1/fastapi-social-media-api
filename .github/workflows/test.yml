@@ -81,13 +81,14 @@ jobs:                                      # all job runs parallely and independ
       SECRET_KEY: ${{secrets.SECRET_KEY}}
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      OWNER_REPOSITORY: ""                            # Just a GHA extension fix for dynamic creation of env at steps.
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Convert repository_owner to lower_case
-        run: echo "OWNER_REPOSITORY=${OWNER,,}" >> $GITHUB_ENV
+        run: echo "OWNER_REPOSITORY=${OWNER,,}" >> $GITHUB_ENV        # Overrides the test env at runtime. 
         env:
           OWNER: ${{ github.repository_owner}}
 
