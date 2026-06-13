@@ -122,6 +122,8 @@ jobs:                                      # all job runs parallely and independ
         with:
           context: .
           push: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push'}}   # Allow pushing image through main branch when event == push.
-          tags: ghcr.io/${{ env.OWNER_REPOSITORY }}/social-media-api:latest
+          tags: |
+            ghcr.io/${{ env.OWNER_REPOSITORY }}/social-media-api:latest
+            ghcr.io/${{ env.OWNER_REPOSITORY }}/social-media-api:${{github.sha}}
           cache-from: type=gha
           cache-to: type=gha,mode=max
