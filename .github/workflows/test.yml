@@ -107,7 +107,6 @@ jobs:                                      # all job runs parallely and independ
       - name: Run tests
         run: python -m pytest -v -x --tb=short
 
-<<<<<<< HEAD
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -126,8 +125,3 @@ jobs:                                      # all job runs parallely and independ
           tags: ghcr.io/${{ env.OWNER_REPOSITORY }}/social-media-api:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-=======
-      - name: Build Docker Image
-        run: |
-          docker build -t fastapi-app .
->>>>>>> main
