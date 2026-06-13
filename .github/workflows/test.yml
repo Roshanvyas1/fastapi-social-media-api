@@ -82,6 +82,7 @@ jobs:                                      # all job runs parallely and independ
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 30
       OWNER_REPOSITORY: ""                            # Just a GHA extension fix for dynamic creation of env at steps.
+      SHORT_SHA: ""                                   # Extension bug fix.
 
     steps:
       - name: Checkout Repository
@@ -91,6 +92,9 @@ jobs:                                      # all job runs parallely and independ
         run: echo "OWNER_REPOSITORY=${OWNER,,}" >> $GITHUB_ENV        # Overrides the test env at runtime. 
         env:
           OWNER: ${{ github.repository_owner}}
+
+      - name: Compvert short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA:0:7}" >> $GITHUB_ENV
 
       - name: Setup Python 
         uses: actions/setup-python@v5
@@ -124,6 +128,6 @@ jobs:                                      # all job runs parallely and independ
           push: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push'}}   # Allow pushing image through main branch when event == push.
           tags: |
             ghcr.io/${{ env.OWNER_REPOSITORY }}/social-media-api:latest
-            ghcr.io/${{ env.OWNER_REPOSITORY }}/social-media-api:${{github.sha}}
+            ghcr.io/${{ env.OWNER_REPOSITORY }}/social-media-api:${{env.SHORT_SHA}}
           cache-from: type=gha
           cache-to: type=gha,mode=max
