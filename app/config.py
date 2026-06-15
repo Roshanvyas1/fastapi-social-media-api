@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     database_username: str
     database_password: str
     database_name: str
-    test_database_name: str
+    test_database_name: str = ""
     secret_key: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 15
