@@ -105,7 +105,7 @@ async def delete_post(
     current_user: UserResponse = Depends(get_current_user),
 ):
 
-    # Using get method, work only for primary attributes and is more optimize(uses sqlalchemy internal memory first for what we search).
+    # Using get method, work only for primary attributes and is more optimize(uses sqlalchemy cache memory first for what we search).
     post = await db.get(models.Post, id)
 
     # If post doesn't exist.
