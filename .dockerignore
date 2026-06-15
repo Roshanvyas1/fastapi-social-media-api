@@ -5,3 +5,12 @@ __pycache__/
 .git/
 .env.example
 venv/
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.github/
+.gitattributes
+*.md
+pytest.ini
+.vscode/
