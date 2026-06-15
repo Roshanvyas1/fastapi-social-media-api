@@ -1,7 +1,8 @@
 name: CI/CD Pipeline
 
 on: 
-  push:
+  push: 
+    branches: [main, develop]             # ci-cd pipeline only runs for main and develop branches. 
   pull_request:
 
 jobs:                                      # all job runs parallely and independently which tells cause of failure seperately.
@@ -93,7 +94,7 @@ jobs:                                      # all job runs parallely and independ
         env:
           OWNER: ${{ github.repository_owner}}
 
-      - name: Compvert short SHA
+      - name: Convert to short SHA
         run: echo "SHORT_SHA=${GITHUB_SHA:0:7}" >> $GITHUB_ENV
 
       - name: Setup Python 
