@@ -141,6 +141,7 @@ async def test_vote(session, test_post, test_user):
 
     return vote
 
+
 @pytest.fixture(autouse=True)
 def reset_rate_limiter():
     limiter.reset()  # Reset rate limiter before every test.
