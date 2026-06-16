@@ -1,3 +1,5 @@
+**Live API:** https://fastapi-social-media-api-yom4.onrender.com/docs
+
 # FastAPI Social Media API
 
 A production-style backend API built with FastAPI and Python 3.12, demonstrating async architecture, JWT security, containerization, and automated CI/CD — structured the way a real engineering team would build it.
@@ -114,6 +116,7 @@ docker compose up --build   # starts postgres + api with migrations
 Local: `pip install -r requirements.txt` → `alembic upgrade head` → `uvicorn app.main:app --reload`
 
 API docs at `http://localhost:8000/docs`
+**Live API:** https://fastapi-social-media-api-yom4.onrender.com/docs
 
 ---
 
