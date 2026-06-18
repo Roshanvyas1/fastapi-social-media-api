@@ -8,7 +8,9 @@ from app.oauth2 import get_current_user
 router = APIRouter(prefix="/votes", tags=["Vote"])
 
 
-@router.post("/", status_code=status.HTTP_200_OK)
+@router.post(
+    "/", status_code=status.HTTP_200_OK, summary="Vote(dir:1) or Unvote(dir:0) a post"
+)
 async def vote(
     vote: Vote,
     db: AsyncSession = Depends(get_db),

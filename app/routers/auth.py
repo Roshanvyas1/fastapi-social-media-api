@@ -12,7 +12,12 @@ from app.limiter import limiter
 router = APIRouter(tags=["Authentication"])
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    summary="Authenticate and recieve a JWT access Token",
+    description="Login through 'Authorize' button placed at top right corner (recommended)",
+)
 @limiter.limit("5/minutes")
 async def login(
     request: Request,

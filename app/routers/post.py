@@ -17,7 +17,7 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
 # Get posts
-@router.get("/", response_model=list[PostVoteResponse])
+@router.get("/", response_model=list[PostVoteResponse], summary="Get all posts")
 async def get_posts(
     db: AsyncSession = Depends(get_db),
     current_user: UserResponse = Depends(get_current_user),
@@ -46,7 +46,12 @@ async def get_posts(
 
 
 # Create post
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=PostResponse)
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    response_model=PostResponse,
+    summary="Create a new post",
+)
 async def create_posts(
     post: PostCreate,
     db: AsyncSession = Depends(get_db),
@@ -64,7 +69,9 @@ async def create_posts(
 
 
 # Get specific post.
-@router.get("/{id}", response_model=PostVoteResponse)
+@router.get(
+    "/{id}", response_model=PostVoteResponse, summary="Get specific post using post_id"
+)
 async def get_post(
     id: int,
     db: AsyncSession = Depends(get_db),
@@ -98,7 +105,11 @@ async def get_post(
 
 
 # Delete specific post.
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a post (owned post only)",
+)
 async def delete_post(
     id: int,
     db: AsyncSession = Depends(get_db),
@@ -125,7 +136,12 @@ async def delete_post(
 
 
 # Update post.
-@router.patch("/{id}", response_model=PostResponse)
+@router.patch(
+    "/{id}",
+    response_model=PostResponse,
+    summary="Update a post (owned post only)",
+    description="ONLY field specified on the request body will be modified.",
+)
 async def update_post(
     id: int,
     post: PostUpdate,

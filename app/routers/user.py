@@ -12,7 +12,7 @@ from app.limiter import limiter
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.get("/", response_model=list[UserResponse])
+@router.get("/", response_model=list[UserResponse], summary="Get existing users detail")
 async def get_users(
     db: AsyncSession = Depends(get_db),
     current_user: UserResponse = Depends(get_current_user),
@@ -33,7 +33,9 @@ async def get_users(
     return users
 
 
-@router.get("/{id}", response_model=UserResponse)
+@router.get(
+    "/{id}", response_model=UserResponse, summary="Get single existing user detail"
+)
 async def get_user(
     id: int,
     db: AsyncSession = Depends(get_db),
@@ -50,7 +52,12 @@ async def get_user(
     return user
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    response_model=UserResponse,
+    summary="Create brand new user id",
+)
 @limiter.limit("3/minutes")
 async def create_user(
     request: Request, user: UserCreate, db: AsyncSession = Depends(get_db)
