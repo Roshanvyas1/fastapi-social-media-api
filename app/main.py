@@ -8,8 +8,31 @@ from sqlalchemy import text
 from app.routers import post, user, auth, vote
 from app.database import get_db
 
-# Creating instance of an FastAPI
-app = FastAPI()
+# Creating instance of an FastAPI with title, description and version.
+app = FastAPI(
+    title="Social Media API",
+    description="""
+A production-style Social Media REST API built with FastAPI — demonstrating async architecture, secure auth, and automated CI/CD.
+
+**To test protected endpoints:** click **Authorize** (top right), enter your registered email as username and your password, then click Authorize. Your token is fetched and applied automatically.
+
+**Engineering highlights:**
+- Fully async stack — SQLAlchemy 2.0 + psycopg, end to end
+- JWT auth with timing-attack mitigation on login
+- Ownership-enforced CRUD (403, not 404, to avoid leaking resource existence)
+- Vote counts via SQL aggregation — no N+1 queries
+- Per-IP rate limiting on auth endpoints
+- Alembic-managed schema migrations
+- `/health` endpoint with live DB connectivity check
+- Automated testing in CI pipeline
+- Cloud deployed with automated CI/CD
+
+[GitHub Repository](https://github.com/Roshanvyas1/fastapi-social-media-api) 
+[CI/CD Pipeline](https://github.com/Roshanvyas1/fastapi-social-media-api/actions)
+[Linkedin Profile](https://www.linkedin.com/in/roshanvyas1/)
+""",
+    version="1.0.0",
+)
 
 # Makes the limiter available to middleware.
 app.state.limiter = limiter
@@ -37,7 +60,7 @@ app.include_router(auth.router)
 app.include_router(vote.router)
 
 
-@app.get("/health", tags=["Health-Check"])
+@app.get("/health", tags=["Health-Check"], summary="Confirms Database Connection")
 async def health(db: AsyncSession = Depends(get_db)):
     try:
         await db.execute(text("SELECT 1"))
