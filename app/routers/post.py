@@ -1,42 +1,68 @@
-from fastapi import HTTPException, status, Depends, APIRouter
+from fastapi import HTTPException, status, Depends, APIRouter, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
+from typing import Literal
+from sqlalchemy.orm import selectinload
 from app import models
-from app.database import get_db
-from app.schemas import (
+from app.dependencies import get_db, get_current_user
+from app.schemas.post_schema import (
     PostCreate,
     PostUpdate,
     PostResponse,
-    PostVoteResponse,
-    UserResponse,
+    PostVoteOwnerResponse,
 )
-from app.oauth2 import get_current_user
+from app.schemas.user_schema import UserResponse
+from app.utils.query_builder import get_voted_flag, get_vote_counts_cte
 
 # Creating a router object
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
 # Get posts
-@router.get("/", response_model=list[PostVoteResponse], summary="Get all posts")
+@router.get(
+    "/",
+    response_model=list[PostVoteOwnerResponse],
+    summary="Get specfic or all user's posts",
+)
 async def get_posts(
     db: AsyncSession = Depends(get_db),
     current_user: UserResponse = Depends(get_current_user),
-    limit: int = 10,
-    skip: int = 0,
-    search: str = "",
+    user_id: int | None = None,
+    sort: Literal["top", "new"] = "top",
+    limit: int = Query(default=10, ge=0, le=100),
+    skip: int = Query(default=0, ge=0),
+    search: str = Query(default=""),
 ):
 
     # creating here so that it can be reused later.
     vote_count = func.count(models.Vote.post_id).label("votes")
+
+    # Correlated subquery.
+    voted_flag = await get_voted_flag(current_user_id=current_user.id)
+
     stmt = (
-        select(models.Post, vote_count)
+        select(models.Post, vote_count, voted_flag)
+        .options(selectinload(models.Post.owner))  # Eager loading for serialization.
         .outerjoin(models.Vote, models.Post.id == models.Vote.post_id)
         .group_by(models.Post.id)
-        .order_by(vote_count.desc())
-        .where(models.Post.title.icontains(search))
+        .where(or_(models.Post.published, models.Post.owner_id == current_user.id))
+        .where(
+            or_(
+                models.Post.title.icontains(search),
+                models.Post.content.icontains(search),
+            )
+        )
         .limit(limit)
         .offset(skip)
     )
+
+    if user_id is not None:
+        stmt = stmt.where(models.Post.owner_id == user_id)
+
+    if sort == "new":
+        stmt = stmt.order_by(models.Post.created_at.desc())
+    else:
+        stmt = stmt.order_by(vote_count.desc())
 
     result = await db.execute(stmt)
 
@@ -63,14 +89,19 @@ async def create_posts(
 
     db.add(new_post)
     await db.commit()
-    await db.refresh(new_post)
+    await db.refresh(new_post)  # reload server-side columns (id, created_at, ...)
+    await db.refresh(
+        new_post, attribute_names=["owner"]
+    )  # eager-load relationship for response
 
     return new_post
 
 
 # Get specific post.
 @router.get(
-    "/{id}", response_model=PostVoteResponse, summary="Get specific post using post_id"
+    "/{id}",
+    response_model=PostVoteOwnerResponse,
+    summary="Get specific post using post_id",
 )
 async def get_post(
     id: int,
@@ -79,16 +110,23 @@ async def get_post(
 ):
 
     # Creating cte.
-    vote_counts = (
-        select(models.Vote.post_id, func.count().label("votes"))
-        .group_by(models.Vote.post_id)
-        .cte("vote_counts")
-    )
+    vote_counts = await get_vote_counts_cte()
+
+    # Correlated subquery.
+    voted_flag = await get_voted_flag(current_user_id=current_user.id)
 
     stmt = (
-        select(models.Post, func.coalesce(vote_counts.c.votes, 0).label("votes"))
+        select(
+            models.Post,
+            func.coalesce(vote_counts.c.votes, 0).label("votes"),
+            voted_flag,
+        )
+        .options(selectinload(models.Post.owner))
         .outerjoin(vote_counts, vote_counts.c.post_id == models.Post.id)
-        .where(models.Post.id == id)
+        .where(
+            models.Post.id == id,
+            or_(models.Post.published, models.Post.owner_id == current_user.id),
+        )
     )
 
     result = await db.execute(stmt)
@@ -179,6 +217,9 @@ async def update_post(
         setattr(existing_post, key, value)
 
     await db.commit()
-    await db.refresh(existing_post)  # re-fetching existing_post after commit
+    await db.refresh(existing_post)  # re-fetch columns after commit
+    await db.refresh(
+        existing_post, attribute_names=["owner"]
+    )  # eager-load relationship for response
 
     return existing_post
