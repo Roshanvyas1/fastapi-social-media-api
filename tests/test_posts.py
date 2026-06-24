@@ -1,10 +1,10 @@
 import pytest
 
 
-# Testing create post.
+# Testing POST /api/v1/posts/ endpoint.
 async def test_unauthorized_user_create_post_return_401(client):
     response = await client.post(
-        "/posts/",
+        "/api/v1/posts/",
         json={"title": "Dummy Title", "content": "Dummy Content", "published": False},
     )
     assert response.status_code == 401
@@ -12,7 +12,7 @@ async def test_unauthorized_user_create_post_return_401(client):
 
 async def test_create_post_return_201(authorized_client, test_user):
     response = await authorized_client.post(
-        "/posts/",
+        "/api/v1/posts/",
         json={"title": "Dummy Title", "content": "Dummy Content", "published": False},
     )
     assert response.status_code == 201
@@ -33,7 +33,8 @@ async def test_create_post_title_or_content_cannot_be_empty_return_422(
     authorized_client, title, content, published, status_code
 ):
     response = await authorized_client.post(
-        "/posts/", json={"title": title, "content": content, "published": published}
+        "/api/v1/posts/",
+        json={"title": title, "content": content, "published": published},
     )
     assert response.status_code == status_code
 
@@ -42,67 +43,67 @@ async def test_create_post_title_length_cannot_be_more_than_120_words_return_422
     authorized_client,
 ):
     response = await authorized_client.post(
-        "/posts/",
+        "/api/v1/posts/",
         json={"title": "a" * 121, "content": "dummy content", "published": False},
     )
     assert response.status_code == 422
 
 
-# Testing get post.
+# Testing GET /api/v1/posts endpoint.
 async def test_unauthorized_user_get_posts_return_401(client):
-    response = await client.get("/posts/")
+    response = await client.get("/api/v1/posts/")
     assert response.status_code == 401
 
 
 async def test_get_posts_return_200(authorized_client, test_post):
-    response = await authorized_client.get("/posts/")
+    response = await authorized_client.get("/api/v1/posts/")
     assert response.status_code == 200
 
     data = response.json()
-    assert data[0]["Post"]["id"] == test_post.id
-    assert data[0]["Post"]["title"] == test_post.title
-    assert data[0]["Post"]["owner_id"] == test_post.owner_id
-    assert data[0]["Post"]["owner"]["email"] == test_post.owner.email
+    assert data[0]["id"] == test_post.id
+    assert data[0]["title"] == test_post.title
+    assert data[0]["owner_id"] == test_post.owner_id
+    assert data[0]["owner"]["email"] == test_post.owner.email
 
 
-# Testing get post using post_id.
+# Testing /api/v1/posts/{id} enpoint.
 async def test_unauthorized_user_get_post_using_post_id_return_401(client, test_post):
     id = test_post.id
-    response = await client.get(f"/posts/{id}")
+    response = await client.get(f"/api/v1/posts/{id}")
     assert response.status_code == 401
 
 
 async def test_get_post_using_post_id_return_200(authorized_client, test_post):
     id = test_post.id
-    response = await authorized_client.get(f"/posts/{id}")
+    response = await authorized_client.get(f"/api/v1/posts/{id}")
     assert response.status_code == 200
 
     data = response.json()
-    assert data["Post"]["id"] == test_post.id
-    assert data["Post"]["title"] == test_post.title
-    assert data["Post"]["content"] == test_post.content
-    assert data["Post"]["owner_id"] == test_post.owner_id
-    assert data["Post"]["owner"]["email"] == test_post.owner.email
+    assert data["id"] == test_post.id
+    assert data["title"] == test_post.title
+    assert data["content"] == test_post.content
+    assert data["owner_id"] == test_post.owner_id
+    assert data["owner"]["email"] == test_post.owner.email
 
 
 async def test_get_post_using_post_id_does_not_exist_return_404(authorized_client):
     id = 99999
-    response = await authorized_client.get(f"/posts/{id}")
+    response = await authorized_client.get(f"/api/v1/posts/{id}")
     assert response.status_code == 404
 
 
 async def test_get_post_using_post_id_wrong_type_return_422(authorized_client):
     id = "abc"
-    response = await authorized_client.get(f"/posts/{id}")
+    response = await authorized_client.get(f"/api/v1/posts/{id}")
     assert response.status_code == 422
 
 
-# Testing delete post.
+# Testing DELETE /api/v1/posts/{id} enpoint.
 async def test_unauthorized_user_delete_post_using_post_id_return_401(
     client, test_post
 ):
     id = test_post.id
-    response = await client.delete(f"/posts/{id}")
+    response = await client.delete(f"/api/v1/posts/{id}")
     assert response.status_code == 401
 
 
@@ -110,7 +111,7 @@ async def test_delete_post_using_post_id_belongs_to_another_user_return_403(
     authorized_client, test_post2
 ):
     id = test_post2.id
-    response = await authorized_client.delete(f"/posts/{id}")
+    response = await authorized_client.delete(f"/api/v1/posts/{id}")
     assert response.status_code == 403
 
 
@@ -118,7 +119,7 @@ async def test_delete_post_using_post_id_belongs_to_owner_return_204(
     authorized_client, test_post
 ):
     id = test_post.id
-    response = await authorized_client.delete(f"/posts/{id}")
+    response = await authorized_client.delete(f"/api/v1/posts/{id}")
     assert response.status_code == 204
 
 
@@ -126,21 +127,21 @@ async def test_delete_post_using_post_id_that_do_not_exist_return_404(
     authorized_client,
 ):
     id = 99999
-    response = await authorized_client.delete(f"/posts/{id}")
+    response = await authorized_client.delete(f"/api/v1/posts/{id}")
     assert response.status_code == 404
 
 
 async def test_delete_post_using_post_id_wrong_type_return_404(authorized_client):
     id = "abc"
-    response = await authorized_client.delete(f"/posts/{id}")
+    response = await authorized_client.delete(f"/api/v1/posts/{id}")
     assert response.status_code == 422
 
 
-# Testing update post.
+# Testing PATCH /api/v1/posts/{id} endpoint.
 async def test_unathorized_user_update_post_using_post_id_return_401(client, test_post):
     id = test_post.id
     response = await client.patch(
-        f"/posts/{id}", json={"title": "Update Dummy Title", "published": False}
+        f"/api/v1/posts/{id}", json={"title": "Update Dummy Title", "published": False}
     )
     assert response.status_code == 401
 
@@ -150,7 +151,7 @@ async def test_update_post_using_post_id_belongs_another_user_return_403(
 ):
     id = test_post2.id
     response = await authorized_client.patch(
-        f"/posts/{id}", json={"title": "Update Dummy Title", "published": False}
+        f"/api/v1/posts/{id}", json={"title": "Update Dummy Title", "published": False}
     )
     assert response.status_code == 403
 
@@ -158,7 +159,7 @@ async def test_update_post_using_post_id_belongs_another_user_return_403(
 async def test_update_post_using_post_id_return_200(authorized_client, test_post):
     id = test_post.id
     response = await authorized_client.patch(
-        f"/posts/{id}", json={"title": "Update Dummy Title", "published": False}
+        f"/api/v1/posts/{id}", json={"title": "Update Dummy Title", "published": False}
     )
     assert response.status_code == 200
 
@@ -172,7 +173,7 @@ async def test_update_post_using_post_id_return_200(authorized_client, test_post
 async def test_update_post_using_post_id_does_not_exist_return_404(authorized_client):
     id = 99999
     response = await authorized_client.patch(
-        f"/posts/{id}", json={"title": "Update Dummy Title", "published": False}
+        f"/api/v1/posts/{id}", json={"title": "Update Dummy Title", "published": False}
     )
     assert response.status_code == 404
 
@@ -180,6 +181,6 @@ async def test_update_post_using_post_id_does_not_exist_return_404(authorized_cl
 async def test_update_post_using_post_id_wrong_type_return_422(authorized_client):
     id = "abc"
     response = await authorized_client.patch(
-        f"/posts/{id}", json={"title": "Update Dummy Title", "published": False}
+        f"/api/v1/posts/{id}", json={"title": "Update Dummy Title", "published": False}
     )
     assert response.status_code == 422

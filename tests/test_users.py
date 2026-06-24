@@ -1,45 +1,83 @@
 import pytest
 
 
-# Testing user create.
-async def test_user_email_return_201(test_user):
-    assert test_user["email"] == "dummy@gmail.com"
+# Testing /api/v1/users/ endpoints.
+async def test_unauthorized_get_users_return_401(client):
+    response = await client.get("/api/v1/users/")
+    assert response.status_code == 401
 
 
-async def test_user_password_should_not_return_in_response(test_user):
-    assert "password" not in test_user
+async def test_get_users_return_200(authorized_client, test_user, test_user2):
+    response = await authorized_client.get("/api/v1/users/")
+    assert response.status_code == 200
 
-
-async def test_duplicate_user_return_409(test_user, client):
-    assert test_user["email"] == "dummy@gmail.com"
-    assert "password" not in test_user
-
-    response = await client.post(
-        "/users/", json={"email": "dummy@gmail.com", "password": "dummy123"}
-    )
-    assert response.status_code == 409
+    data = response.json()
+    assert data[0]["id"] == test_user["id"]
+    assert data[0]["email"] == test_user["email"]
+    assert data[1]["id"] == test_user2["id"]
+    assert data[1]["email"] == test_user2["email"]
+    assert "password" not in data[0]
+    assert "password" not in data[1]
 
 
 @pytest.mark.parametrize(
-    "email, password, status_code",
+    "limit, skip, search, status_code",
     [
-        ("dummygmail.com", "dummy123", 422),
-        (None, "dummy123", 422),
-        ("dummy@gmail.com", "dummy", 422),
-        ("dummy@gmail.com", None, 422),
+        (-1, 0, "", 422),
+        (1000, 0, "", 422),
+        ("abc", 0, "", 422),
+        (10, -1, "", 422),
+        ("10", "abc", "", 422),
     ],
 )
-async def test_user_wrong_email_or_password_format_return_422(
-    client, email, password, status_code
+async def test_get_users_wrong_type_or_limit_return_422(
+    authorized_client, limit, skip, search, status_code
 ):
-    response = await client.post("/users/", json={"email": email, "password": password})
+    response = await authorized_client.get(
+        f"/api/v1/users/?limit={limit}&skip={skip}&search={search}"
+    )
     assert response.status_code == status_code
 
 
-async def test_user_insufficient_password_length_less_than_8_charactor_return_422(
-    client,
+# Testing /api/v1/users/me endpoint.
+async def test_unauthorized_get_users_me_return_401(client):
+    response = await client.get("/api/v1/users/me")
+    assert response.status_code == 401
+
+
+async def test_get_users_me_return_200(
+    authorized_client, test_user, test_post, test_post2
 ):
-    response = await client.post(
-        "/users/", json={"email": "dummy@gmail.com", "password": "dummy"}
-    )
-    assert response.status_code == 422
+    response = await authorized_client.get("/api/v1/users/me")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["user"]["id"] == test_user["id"]
+    assert data["user"]["email"] == test_user["email"]
+    assert data["posts"][0]["id"] == test_post.id
+    assert data["posts"][0]["title"] == test_post.title
+    assert data["posts"][0]["content"] == test_post.content
+    assert data["posts"][0]["published"] == test_post.published
+    assert data["posts"][0]["votes"] == 0
+    assert not data["posts"][0]["voted"]
+
+
+# Testing /api/v1/users/{id} endpoint.
+async def test_unauthorized_get_user_using_id_return_401(client, test_user2):
+    response = await client.get(f"/api/v1/users/{test_user2['id']}")
+    assert response.status_code == 401
+
+
+async def test_get_user_using_id_return_200(authorized_client, test_user2, test_post2):
+    response = await authorized_client.get(f"/api/v1/users/{test_user2['id']}")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["user"]["id"] == test_user2["id"]
+    assert data["user"]["email"] == test_user2["email"]
+    assert data["posts"][0]["id"] == test_post2.id
+    assert data["posts"][0]["title"] == test_post2.title
+    assert data["posts"][0]["content"] == test_post2.content
+    assert data["posts"][0]["published"] == test_post2.published
+    assert data["posts"][0]["votes"] == 0
+    assert not data["posts"][0]["voted"]

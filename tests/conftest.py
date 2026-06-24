@@ -2,13 +2,14 @@ import pytest
 from httpx import AsyncClient, ASGITransport
 import jwt
 from app.main import app
-from app.database import get_db, Base
+from app.dependencies import get_db
+from app.database import Base
 from app import models
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from app.config import settings
+from app.utils.limiter import limiter
 import asyncio
 import sys
-from app.limiter import limiter
 
 # This tells Python —> if we are on Windows, use SelectorEventLoop instead of the default ProactorEventLoop.
 if sys.platform == "win32":
@@ -61,7 +62,8 @@ async def client(session):
 @pytest.fixture
 async def test_user(client):
     response = await client.post(
-        "/users/", json={"email": "dummy@gmail.com", "password": "dummy123"}
+        "/api/v1/auth/register",
+        json={"email": "dummy@gmail.com", "password": "dummy123"},
     )
     assert response.status_code == 201
     return response.json()
@@ -70,7 +72,8 @@ async def test_user(client):
 @pytest.fixture
 async def token(test_user, client):
     response = await client.post(
-        "/login", data={"username": test_user["email"], "password": "dummy123"}
+        "/api/v1/auth/login",
+        data={"username": test_user["email"], "password": "dummy123"},
     )
     assert response.status_code == 200
     assert "access_token" in response.json()
@@ -98,7 +101,7 @@ async def test_post(session, test_user):
         title="Dummy Title",
         content="Dummy Content",
         published=True,
-        owner_id=test_user["id"],
+        owner_id=test_user["id"],  # created by user1.
     )
     session.add(post)
     await session.commit()
@@ -110,7 +113,8 @@ async def test_post(session, test_user):
 @pytest.fixture
 async def test_user2(client):
     response = await client.post(
-        "/users/", json={"email": "random@gmail.com", "password": "random123"}
+        "/api/v1/auth/register",
+        json={"email": "random@gmail.com", "password": "random123"},
     )
     assert response.status_code == 201
 
@@ -123,7 +127,7 @@ async def test_post2(session, test_user2):
         title="Random Title",
         content="Random Content",
         published=True,
-        owner_id=test_user2["id"],
+        owner_id=test_user2["id"],  # Created by user2.
     )
     session.add(post)
     await session.commit()
