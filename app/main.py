@@ -3,10 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from app.limiter import limiter
+from app.utils.limiter import limiter
 from sqlalchemy import text
 from app.routers import post, user, auth, vote
-from app.database import get_db
+from app.dependencies import get_db
 
 # Creating instance of an FastAPI with title, description and version.
 app = FastAPI(
@@ -54,13 +54,15 @@ app.add_middleware(
 # It will create model/table in our database.
 # models.Base.metadata.create_all(bind=engine)   # Since we currently using alembic(migration tool) therefore we don't use this further.
 
-app.include_router(post.router)
-app.include_router(user.router)
-app.include_router(auth.router)
-app.include_router(vote.router)
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(user.router, prefix="/api/v1")
+app.include_router(post.router, prefix="/api/v1")
+app.include_router(vote.router, prefix="/api/v1")
 
 
-@app.get("/health", tags=["Health-Check"], summary="Confirms Database Connection")
+@app.get(
+    "/api/v1/health", tags=["Health-Check"], summary="Confirms Database Connection"
+)
 async def health(db: AsyncSession = Depends(get_db)):
     try:
         await db.execute(text("SELECT 1"))
