@@ -27,8 +27,8 @@ A production-style Social Media REST API built with FastAPI — demonstrating as
 - Automated testing in CI pipeline
 - Cloud deployed with automated CI/CD
 
-[GitHub Repository](https://github.com/Roshanvyas1/fastapi-social-media-api) 
-[CI/CD Pipeline](https://github.com/Roshanvyas1/fastapi-social-media-api/actions)
+[GitHub Repository](https://github.com/Roshanvyas1/fastapi-social-media-api) | 
+[CI/CD Pipeline](https://github.com/Roshanvyas1/fastapi-social-media-api/actions) |
 [Linkedin Profile](https://www.linkedin.com/in/roshanvyas1/)
 """,
     version="1.0.0",
@@ -40,8 +40,8 @@ app.state.limiter = limiter
 # Converts slowapi exception into HTTP response.
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore
 
-# Although we can specify any specific origins/websites to work our applications(but here allowed for everyone).
-origins = ["*"]
+# Although we can specify any specific origins/websites to work our applications.
+origins = ["https://fastapi-social-media-api.vercel.app/"]
 
 app.add_middleware(
     CORSMiddleware,
