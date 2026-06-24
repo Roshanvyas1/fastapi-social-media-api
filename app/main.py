@@ -41,7 +41,10 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore
 
 # Although we can specify any specific origins/websites to work our applications.
-origins = ["https://fastapi-social-media-api.vercel.app/"]
+origins = [
+    "https://fastapi-social-media-api.vercel.app",
+    "http://localhost:8000"
+]
 
 app.add_middleware(
     CORSMiddleware,
