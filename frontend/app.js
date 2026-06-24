@@ -555,6 +555,25 @@ function renderSettings() {
         </div>
       </section>
 
+      <section class="card settings-card">
+        <h3>About</h3>
+        <p class="page-sub">A demo client for a production-style FastAPI backend.</p>
+        <div class="settings-row">
+          <div><div class="label">Project</div><div class="desc">Source code &amp; live API documentation</div></div>
+          <div class="link-btns">
+            <a class="btn btn-ghost btn-sm" href="https://github.com/Roshanvyas1/fastapi-social-media-api" target="_blank" rel="noopener">Source</a>
+            <a class="btn btn-ghost btn-sm" href="https://fastapi-social-media-api-yom4.onrender.com/docs" target="_blank" rel="noopener">API Docs</a>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div><div class="label">Author</div><div class="desc">Roshan Vyas</div></div>
+          <div class="link-btns">
+            <a class="btn btn-ghost btn-sm" href="https://github.com/Roshanvyas1" target="_blank" rel="noopener">GitHub</a>
+            <a class="btn btn-ghost btn-sm" href="https://www.linkedin.com/in/roshanvyas1/" target="_blank" rel="noopener">LinkedIn</a>
+          </div>
+        </div>
+      </section>
+
     </div>
   `);
 
