@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SocialFeed — a polished client for the FastAPI Social Media API." />
+  <title>SocialFeed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ============================ AUTH VIEW ============================ -->
+  <main id="auth-view" class="auth-view">
+    <!-- Branding / marketing panel -->
+    <section class="auth-hero">
+      <a class="brand brand-lg" href="#"><span class="logo-mark">◈</span> Social<span class="accent">Feed</span></a>
+      <h2 class="auth-hero-title">Where ideas meet their audience.</h2>
+      <p class="auth-hero-sub">A clean, fast client for a production-grade FastAPI backend — async all the way down.</p>
+      <ul class="auth-feature-list">
+        <li><span>⚡</span> Fully async SQLAlchemy 2.0 stack</li>
+        <li><span>🔐</span> JWT auth with timing-attack mitigation</li>
+        <li><span>▲</span> Vote-ranked feed via SQL aggregation</li>
+        <li><span>🛡️</span> Per-IP rate limiting &amp; ownership rules</li>
+      </ul>
+      <div class="auth-hero-foot">
+        <span id="hero-health" class="pill"><span class="dot"></span> checking API…</span>
+      </div>
+    </section>
+
+    <!-- Form panel -->
+    <section class="auth-panel">
+      <div class="auth-card">
+        <div class="auth-card-head">
+          <h1 id="auth-heading">Welcome back</h1>
+          <p id="auth-subhead" class="auth-sub">Sign in to continue to your feed.</p>
+        </div>
+
+        <div class="seg" role="tablist">
+          <button class="seg-btn is-active" data-tab="login" role="tab">Sign in</button>
+          <button class="seg-btn" data-tab="register" role="tab">Create account</button>
+          <span class="seg-glider"></span>
+        </div>
+
+        <form id="login-form" class="auth-form">
+          <label class="field">Email
+            <input type="email" name="email" autocomplete="username" placeholder="you@example.com" required />
+          </label>
+          <label class="field">Password
+            <div class="pw-wrap">
+              <input type="password" name="password" autocomplete="current-password" placeholder="••••••••" required />
+              <button type="button" class="pw-toggle" data-pw-toggle title="Show password">👁</button>
+            </div>
+          </label>
+          <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+        </form>
+
+        <form id="register-form" class="auth-form hidden">
+          <label class="field">Email
+            <input type="email" name="email" autocomplete="username" placeholder="you@example.com" required />
+          </label>
+          <label class="field">Password <span class="hint">min 8 characters</span>
+            <div class="pw-wrap">
+              <input type="password" name="password" minlength="8" autocomplete="new-password" placeholder="Create a password" required />
+              <button type="button" class="pw-toggle" data-pw-toggle title="Show password">👁</button>
+            </div>
+            <div class="pw-meter"><span data-pw-bar></span></div>
+          </label>
+          <button type="submit" class="btn btn-primary btn-block">Create account</button>
+        </form>
+
+        <p id="auth-msg" class="msg"></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================ APP SHELL ============================ -->
+  <div id="app-view" class="app-view hidden">
+    <!-- Sidebar (desktop) -->
+    <aside class="sidebar">
+      <a href="#/feed" class="brand sidebar-brand"><span class="logo-mark">◈</span> Social<span class="accent">Feed</span></a>
+      <nav class="side-nav">
+        <a href="#/feed"    data-nav="feed">    <span class="ic">🏠</span> Feed</a>
+        <a href="#/explore" data-nav="explore"> <span class="ic">🧭</span> Explore</a>
+        <a href="#/create"  data-nav="create">  <span class="ic">✏️</span> Create</a>
+        <a href="#/profile" data-nav="profile"> <span class="ic">👤</span> Profile</a>
+        <a href="#/settings" data-nav="settings"><span class="ic">⚙️</span> Settings</a>
+      </nav>
+      <a href="#/create" class="btn btn-primary btn-block side-cta">+ New post</a>
+
+      <div class="sidebar-foot">
+        <button id="side-user" class="side-user">
+          <span id="side-avatar" class="avatar avatar-sm"></span>
+          <span class="side-user-meta">
+            <span id="side-email" class="side-email"></span>
+            <span class="side-role">View settings</span>
+          </span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main column -->
+    <div class="main">
+      <header class="topbar">
+        <button id="mobile-back" class="icon-btn topbar-back hidden" title="Back">←</button>
+        <a href="#/feed" class="brand topbar-brand"><span class="logo-mark">◈</span> Social<span class="accent">Feed</span></a>
+        <div class="topbar-spacer"></div>
+        <button id="theme-toggle" class="icon-btn" title="Toggle theme">🌙</button>
+        <span id="health-dot" class="health-dot" title="API status">●</span>
+        <div class="user-menu">
+          <button id="avatar-btn" class="avatar" title="Account"></button>
+          <div id="user-dropdown" class="dropdown hidden">
+            <div class="dropdown-head">
+              <span id="dropdown-avatar" class="avatar avatar-sm"></span>
+              <span id="dropdown-email" class="dropdown-email"></span>
+            </div>
+            <a href="#/profile" class="dropdown-item"><span>👤</span> My profile</a>
+            <a href="#/settings" class="dropdown-item"><span>⚙️</span> Settings</a>
+            <button id="logout-btn" class="dropdown-item danger"><span>⎋</span> Log out</button>
+          </div>
+        </div>
+      </header>
+
+      <main id="view-root" class="container"></main>
+    </div>
+
+    <!-- Bottom nav (mobile) -->
+    <nav class="bottom-nav">
+      <a href="#/feed"    data-nav="feed">    <span class="ic">🏠</span><span>Feed</span></a>
+      <a href="#/explore" data-nav="explore"> <span class="ic">🧭</span><span>Explore</span></a>
+      <a href="#/create"  data-nav="create" class="bottom-cta"> <span class="ic">＋</span></a>
+      <a href="#/profile" data-nav="profile"> <span class="ic">👤</span><span>Profile</span></a>
+      <a href="#/settings" data-nav="settings"><span class="ic">⚙️</span><span>More</span></a>
+    </nav>
+  </div>
+
+  <!-- ============================ EDIT MODAL ============================ -->
+  <div id="edit-modal" class="modal-overlay hidden">
+    <div class="modal card">
+      <div class="modal-head">
+        <h2>Edit post</h2>
+        <button type="button" id="edit-close" class="icon-btn ghost" title="Close">✕</button>
+      </div>
+      <form id="edit-form">
+        <input type="hidden" name="id" />
+        <label class="field">Title
+          <input name="title" maxlength="120" required />
+        </label>
+        <label class="field">Content
+          <textarea name="content" rows="6" required></textarea>
+          <span class="char-count" data-count-for="content"></span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" name="published" />
+          <span class="switch-track"></span>
+          <span>Published</span>
+        </label>
+        <div class="modal-actions">
+          <button type="button" id="edit-cancel" class="btn btn-ghost">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
